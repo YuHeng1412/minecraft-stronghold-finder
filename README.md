@@ -22,7 +22,7 @@
 | --- | --- |
 | 末影之眼三角定位 | 记录「抛眼位置」和「末影之眼正下方的位置」，用加权最小二乘求交点，支持 3 条以上测量互相纠错 |
 | 置信度评估 | 输出 95% 置信半径、每条视线的残差、两两夹角、方向一致性检查，并给出通俗的中文警告 |
-| 种子推算 | 1.19.3 – 1.21.x 可以只凭种子算出全部 128 个要塞的理想点；旧版本如实只给第 1 个 |
+| 种子推算 | 1.19.3 – 26.3（含 26.1 / 26.2 / 26.3）可以只凭种子算出全部 128 个要塞的理想点；旧版本如实只给第 1 个 |
 | 地图可视化 | 局部的测量/交点视图 + 以原点为中心的八环总览图 |
 | 便捷功能 | 一键复制坐标 / `/tp` 指令 / 下界坐标、按基线长度自动加权、JSON 导入导出、分享链接、中英文切换 |
 | 命令行 | `eye` 与 `seed` 两个子命令，支持 `--json` / `--csv`，方便脚本化 |
@@ -96,7 +96,7 @@ Minecraft 从 1.9 起把最多 128 个要塞按 **8 个同心环**摆放：先�
 
 | 版本 | 生物群系搜索用的随机源 | 本工具能给出 |
 | --- | --- | --- |
-| **1.19.3 – 1.21.x** | 每个要塞 `fork()` 出独立随机源（只消耗 1 次 `nextLong`） | **全部 128 个**理想点，误差 ±112 格 |
+| **1.19.3 – 26.3**（含 26.1 / 26.2 / 26.3） | 每个要塞 `fork()` 出独立随机源（只消耗 1 次 `nextLong`） | **全部 128 个**理想点，误差 ±112 格 |
 | **1.9 – 1.19.2** | 直接消耗环形随机数流（每个要塞上千次抽取） | 只有**第 1 个** |
 | **1.8 及更早** | 同上 | 只有**第 1 个**（旧算法共 3 个要塞） |
 
@@ -180,7 +180,8 @@ dist/                       打包产物（可直接双击打开）
 
 算法正确性做了三层校验，都可以复现：
 
-1. **对照原版反编译源码**：`ChunkGenerator.generateStrongholds`（1.18.1）与 `ChunkGeneratorStructureState.generateRingPositions`（1.21.x），逐条核对距离公式、`+8` 区块中心偏移、`spread` 增长与封顶、以及 1.19.3 起每次放置消耗的一个 `nextLong`（`RandomSource.fork()`）。
+1. **对照原版反编译源码**：`ChunkGenerator.generateStrongholds`（1.18.1）与 `ChunkGeneratorStructureState.generateRingPositions`（1.21.x、**26.3**），逐条核对距离公式、`+8` 区块中心偏移、`spread` 增长与封顶、以及 1.19.3 起每次放置消耗的一个 `nextLong`（`RandomSource.fork()`）。
+   * 26.3 另核对了 `data/minecraft/worldgen/structure_set/strongholds.json`（`count=128, distance=32, spread=3, salt=0`）、`ConcentricRingsStructurePlacement` 的字段范围，以及 `ChunkGenerator.findNearestMapStructure`——其中确认要塞的目标点就是区块中心 `(chunkX·16+8, chunkZ·16+8)`，且环形布局不受 100 区块搜索半径限制（该半径只作用于 `RandomSpreadStructurePlacement`）。
 2. **与独立实现交叉比对**：
 
    ```bash
@@ -199,10 +200,10 @@ dist/                       打包产物（可直接双击打开）
 
 ## English
 
-**Stronghold Finder** locates Minecraft strongholds (the structures holding the end portal) in two ways: by triangulating thrown eyes of ender, and - on 1.19.3+ - straight from the world seed.
+**Stronghold Finder** locates Minecraft strongholds (the structures holding the end portal) in two ways: by triangulating thrown eyes of ender, and - on 1.19.3 through 26.3 - straight from the world seed.
 
 * **Eye triangulation** works on every version and needs no mods. Throw an eye, walk until it hovers directly above you, and record both positions. Two such lines cross at the stronghold; three or more are combined with a weighted least squares fit that also reports a 95% confidence radius, per line residuals and geometry warnings.
-* **Seed prediction** reproduces vanilla's concentric ring placement. On 1.19.3 - 1.21.x the biome search forks its own random source, so all 128 ideal stronghold points follow from the seed alone (accurate to ±112 blocks, the radius vanilla uses to relocate a stronghold into a valid biome). On 1.9 - 1.19.2 and 1.8 the biome search eats into the shared ring random, so only the first stronghold is predictable - this tool reports exactly that one instead of inventing the rest.
+* **Seed prediction** reproduces vanilla's concentric ring placement. On 1.19.3 - 26.3 the biome search forks its own random source, so all 128 ideal stronghold points follow from the seed alone (accurate to ±112 blocks, the radius vanilla uses to relocate a stronghold into a valid biome). On 1.9 - 1.19.2 and 1.8 the biome search eats into the shared ring random, so only the first stronghold is predictable - this tool reports exactly that one instead of inventing the rest.
 
 Everything runs offline in the browser (zero dependencies) and there is a CLI: `node src/cli.mjs eye --measure 0,0,58,-290 --measure 512,140,556,-140`.
 

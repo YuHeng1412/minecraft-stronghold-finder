@@ -1,6 +1,6 @@
 {
   "name": "minecraft-stronghold-finder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Minecraft stronghold finder: eye-of-ender triangulation plus seed-based stronghold ring calculator (末地要塞定位器)",
   "type": "module",
   "license": "MIT",

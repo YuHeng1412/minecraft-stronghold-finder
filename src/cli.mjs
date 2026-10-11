@@ -18,7 +18,7 @@ import {
   yawFromDirection,
 } from './triangulate.js';
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 
 const HELP = `末地要塞定位器 · Minecraft Stronghold Finder v${VERSION}
 
@@ -35,7 +35,7 @@ eye 选项:
   --json                  输出 JSON
 
 seed 选项:
-  --version <版本>        modern | classic | legacy | 1.21 | 1.16.5 ...（默认 modern）
+  --version <版本>        modern | classic | legacy | 26.3 | 1.21 | 1.16.5 ...（默认 modern）
   --ring <1-8>            只看某一环
   --limit <n>             最多输出 n 个
   --csv                   输出 CSV
@@ -201,7 +201,7 @@ function printSeedResult(result, ringFilter, limit, asCsv) {
   if (!result.fullyPredictable) {
     console.log('! 该版本中每个要塞的生物群系搜索都会消耗同一个随机数流，');
     console.log('  因此只有第 1 个要塞可以精确推算，后续要塞取决于地形。');
-    console.log('  想拿到全部 128 个坐标请使用 1.19.3 及更新版本，或直接用末影之眼三角定位。');
+    console.log('  想拿到全部 128 个坐标请使用 1.19.3 及更新版本（含 26.x），或直接用末影之眼三角定位。');
     console.log('');
   }
   console.log(`能力: 可推算 ${result.predictableCount} / ${result.totalCount} 个要塞，理想点误差 ±${RELOCATION_RADIUS} 格`);

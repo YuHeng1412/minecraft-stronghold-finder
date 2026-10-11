@@ -172,6 +172,19 @@ test('version aliases resolve to the right placement generation', () => {
   assertThrows(() => resolveVersion('1.9.9.9'), 'garbage versions must throw');
 });
 
+test('the 26.x version line uses the same rings as 1.19.3+', () => {
+  // Verified against the 26.3 sources: ChunkGeneratorStructureState still
+  // forks a generator per stronghold and the structure set still reads
+  // count=128, distance=32, spread=3.
+  for (const version of ['26', '26.1', '26.1.2', '26.2', '26.3', '26.x']) {
+    assertEqual(resolveVersion(version).id, 'modern', `${version} placement model`);
+  }
+  assertEqual(resolveVersion('26.3').predictableCount, 128, 'everything is predictable');
+  const modern = generateStrongholds('0', { version: '1.21' }).strongholds;
+  const current = generateStrongholds('0', { version: '26.3' }).strongholds;
+  assertEqual(JSON.stringify(current), JSON.stringify(modern), '26.3 must produce the same layout as 1.19.3+');
+});
+
 test('ring helpers agree with the table', () => {
   assertEqual(ringOf(2000), 1);
   assertEqual(ringOf(5000), 2);

@@ -282,7 +282,7 @@ code { background: rgba(255, 255, 255, 0.07); padding: 1px 6px; border-radius: 6
     </p>
   </div>
   <div class="header-actions">
-    <span class="pill" id="toolVersion">v1.0.0</span>
+    <span class="pill" id="toolVersion">v1.0.1</span>
     <button id="langToggle" class="ghost" title="switch language">EN</button>
     <a class="pill" href="https://github.com/YuHeng1412/minecraft-stronghold-finder" target="_blank" rel="noopener">GitHub</a>
   </div>
@@ -507,16 +507,16 @@ code { background: rgba(255, 255, 255, 0.07); padding: 1px 6px; border-radius: 6
     </div>
 
     <div class="card">
-      <h2><span class="zh">二、种子推算（1.19.3+ 可以算出全部 128 个）</span><span class="en">2. Seed prediction (all 128 on 1.19.3+)</span></h2>
+      <h2><span class="zh">二、种子推算（1.19.3 – 26.3 可以算出全部 128 个）</span><span class="en">2. Seed prediction (all 128 on 1.19.3 - 26.3)</span></h2>
       <div class="zh">
         <p>Minecraft 从 1.9 起把最多 128 个要塞按 8 个同心环摆放：先算出一个「理想点」（某个区块的中心），再把要塞挪到 112 格内最近的合法生物群系里。本工具复现的就是这个理想点——也正是末影之眼瞄准的位置。</p>
-        <p><b>1.19.3 及更新版本：</b>生物群系搜索会从环形随机数生成器里 fork 出自己的随机源（只消耗一个 <code>nextLong</code>），所以 128 个要塞的理想点都能只凭种子算出来，误差 ±112 格。</p>
+        <p><b>1.19.3 及更新版本（含 26.1 / 26.2 / 26.3）：</b>生物群系搜索会从环形随机数生成器里 fork 出自己的随机源（只消耗一个 <code>nextLong</code>），所以 128 个要塞的理想点都能只凭种子算出来，误差 ±112 格。</p>
         <p><b>1.9 – 1.19.2 与 1.8：</b>生物群系搜索直接消耗同一个随机数流，每算一个要塞都会吃掉上千个随机数，所以第二个要塞之后的位置取决于地图地形。本工具只给出<b>第 1 个</b>要塞，不会编造其余坐标。</p>
         <p>推荐用法：先算出第 1 个要塞的理想点 → 传送/走过去 → 用末影之眼三角定位精确锁定楼梯口。</p>
       </div>
       <div class="en">
         <p>Since 1.9 Minecraft places up to 128 strongholds in eight concentric rings: it computes an "ideal point" (a chunk centre) and then nudges the stronghold to the nearest valid biome within 112 blocks. This tool reproduces that ideal point, which is exactly where an eye of ender points.</p>
-        <p><b>1.19.3 and newer:</b> the biome search forks its own random source (consuming a single <code>nextLong</code>), so all 128 ideal points follow from the seed alone, within ±112 blocks.</p>
+        <p><b>1.19.3 and newer (including 26.1 / 26.2 / 26.3):</b> the biome search forks its own random source (consuming a single <code>nextLong</code>), so all 128 ideal points follow from the seed alone, within ±112 blocks.</p>
         <p><b>1.9 - 1.19.2 and 1.8:</b> the biome search draws from the same stream - thousands of draws per stronghold - so anything after the first one depends on terrain. Only the first stronghold is reported here; the rest are not invented.</p>
         <p>Suggested workflow: predict the first stronghold, travel there, then refine with eye triangulation.</p>
       </div>
@@ -801,10 +801,12 @@ const MAX_STRONGHOLD_RADIUS = RINGS[RINGS.length - 1].max;
 const VERSIONS = Object.freeze([
   {
     id: 'modern',
-    label: '1.19.3 - 1.21.x',
+    label: '1.19.3 - 26.3',
+    labelZh: '1.19.3 – 26.3',
     aliases: [
       '1.19.3', '1.19.4', '1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6',
       '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6', '1.21.7', '1.21.8',
+      '26', '26.1', '26.1.1', '26.1.2', '26.2', '26.3', '26.x',
       'modern', 'latest',
     ],
     model: 'forked',
@@ -814,6 +816,7 @@ const VERSIONS = Object.freeze([
   {
     id: 'classic',
     label: '1.9 - 1.19.2',
+    labelZh: '1.9 – 1.19.2',
     aliases: [
       '1.9', '1.9.4', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16', '1.16.5',
       '1.17', '1.18', '1.18.2', '1.19', '1.19.1', '1.19.2', 'classic',
@@ -825,6 +828,7 @@ const VERSIONS = Object.freeze([
   {
     id: 'legacy',
     label: '1.8 and older',
+    labelZh: '1.8 及更早',
     aliases: ['1.8', '1.8.9', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '1.0', 'beta', 'legacy'],
     model: 'legacy',
     count: 3,
@@ -844,6 +848,12 @@ function resolveVersion(input = 'modern') {
   for (const version of VERSIONS) {
     if (version.id === key || version.aliases.includes(key)) return version;
   }
+  // A bare major version: "26" means the current 26.x line.
+  if (/^\d+$/.test(key)) {
+    const major = Number(key);
+    if (major === 1) return VERSIONS[1];
+    if (major > 1) return VERSIONS[0];
+  }
   const match = /^(\d+)\.(\d+)(?:\.(\d+))?$/.exec(key);
   if (match) {
     const major = Number(match[1]);
@@ -855,6 +865,7 @@ function resolveVersion(input = 'modern') {
     if (major === 1 && minor === 19) return VERSIONS[0];
     if (major === 1 && minor >= 20) return VERSIONS[0];
     if (major === 1 && minor >= 9) return VERSIONS[1];
+    // 26.1, 26.2, 26.3 ... use the same concentric ring placement as 1.19.3+.
     if (major > 1) return VERSIONS[0];
   }
   throw new RangeError(`Unknown Minecraft version: ${input}`);
@@ -1421,7 +1432,7 @@ const MESSAGES = {
     'toast.empty': '没有可复制的内容',
     'seed.textSeed': '文本种子已按 Java String.hashCode 转换为 {seed}',
     'seed.predictable': '可推算 {predictable} / {total} 个要塞，理想点误差 ±{radius} 格',
-    'seed.partial': '该版本的生物群系搜索会消耗同一个随机数流，所以只有第 1 个要塞可以精确推算，其余取决于地形。想拿到全部 128 个坐标请选 1.19.3 及更新版本，或者直接用末影之眼定位。',
+    'seed.partial': '该版本的生物群系搜索会消耗同一个随机数流，所以只有第 1 个要塞可以精确推算，其余取决于地形。想拿到全部 128 个坐标请选 1.19.3 – 26.3，或者直接用末影之眼定位。',
     'seed.ringInfo': '第 {ring} 环：{count} 个要塞，距原点 {min} - {max} 格',
     'seed.all': '全部',
     'seed.ring': '{ring} 环',
@@ -1464,7 +1475,7 @@ const MESSAGES = {
     'toast.empty': 'Nothing to copy',
     'seed.textSeed': 'Text seed resolved to {seed} via Java String.hashCode',
     'seed.predictable': 'Can predict {predictable} of {total} strongholds, ideal point within ±{radius} blocks',
-    'seed.partial': 'In this version the biome search draws from the same random stream, so only the first stronghold is predictable and the rest depend on terrain. Choose 1.19.3 or newer for all 128, or just use eye triangulation.',
+    'seed.partial': 'In this version the biome search draws from the same random stream, so only the first stronghold is predictable and the rest depend on terrain. Choose 1.19.3 - 26.3 for all 128, or just use eye triangulation.',
     'seed.ringInfo': 'Ring {ring}: {count} strongholds, {min} - {max} blocks from the origin',
     'seed.all': 'All',
     'seed.ring': 'Ring {ring}',
@@ -2201,14 +2212,10 @@ function drawOverview(result) {
 
 function renderVersionSelect() {
   els.versionSelect.textContent = '';
-  for (const [value, label] of [
-    ['modern', '1.19.3 - 1.21.x'],
-    ['classic', '1.9 - 1.19.2'],
-    ['legacy', '1.8 and older'],
-  ]) {
+  for (const version of VERSIONS) {
     const option = document.createElement('option');
-    option.value = value;
-    option.textContent = label;
+    option.value = version.id;
+    option.textContent = state.lang === 'zh' ? (version.labelZh ?? version.label) : version.label;
     els.versionSelect.appendChild(option);
   }
   els.versionSelect.value = state.version;
@@ -2399,7 +2406,7 @@ function boot() {
   showTab('eye');
   renderAll();
   calculateSeed();
-  if (els.toolVersion) els.toolVersion.textContent = 'v1.0.0';
+  if (els.toolVersion) els.toolVersion.textContent = 'v1.0.1';
   if (els.bootWarning) els.bootWarning.hidden = true;
   window.__STRONGHOLD_FINDER_READY__ = true;
 }

@@ -71,10 +71,12 @@ export const MAX_STRONGHOLD_RADIUS = RINGS[RINGS.length - 1].max;
 export const VERSIONS = Object.freeze([
   {
     id: 'modern',
-    label: '1.19.3 - 1.21.x',
+    label: '1.19.3 - 26.3',
+    labelZh: '1.19.3 – 26.3',
     aliases: [
       '1.19.3', '1.19.4', '1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6',
       '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6', '1.21.7', '1.21.8',
+      '26', '26.1', '26.1.1', '26.1.2', '26.2', '26.3', '26.x',
       'modern', 'latest',
     ],
     model: 'forked',
@@ -84,6 +86,7 @@ export const VERSIONS = Object.freeze([
   {
     id: 'classic',
     label: '1.9 - 1.19.2',
+    labelZh: '1.9 – 1.19.2',
     aliases: [
       '1.9', '1.9.4', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16', '1.16.5',
       '1.17', '1.18', '1.18.2', '1.19', '1.19.1', '1.19.2', 'classic',
@@ -95,6 +98,7 @@ export const VERSIONS = Object.freeze([
   {
     id: 'legacy',
     label: '1.8 and older',
+    labelZh: '1.8 及更早',
     aliases: ['1.8', '1.8.9', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '1.0', 'beta', 'legacy'],
     model: 'legacy',
     count: 3,
@@ -114,6 +118,12 @@ export function resolveVersion(input = 'modern') {
   for (const version of VERSIONS) {
     if (version.id === key || version.aliases.includes(key)) return version;
   }
+  // A bare major version: "26" means the current 26.x line.
+  if (/^\d+$/.test(key)) {
+    const major = Number(key);
+    if (major === 1) return VERSIONS[1];
+    if (major > 1) return VERSIONS[0];
+  }
   const match = /^(\d+)\.(\d+)(?:\.(\d+))?$/.exec(key);
   if (match) {
     const major = Number(match[1]);
@@ -125,6 +135,7 @@ export function resolveVersion(input = 'modern') {
     if (major === 1 && minor === 19) return VERSIONS[0];
     if (major === 1 && minor >= 20) return VERSIONS[0];
     if (major === 1 && minor >= 9) return VERSIONS[1];
+    // 26.1, 26.2, 26.3 ... use the same concentric ring placement as 1.19.3+.
     if (major > 1) return VERSIONS[0];
   }
   throw new RangeError(`Unknown Minecraft version: ${input}`);

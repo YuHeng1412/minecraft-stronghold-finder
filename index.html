@@ -23,7 +23,7 @@
     </p>
   </div>
   <div class="header-actions">
-    <span class="pill" id="toolVersion">v1.0.0</span>
+    <span class="pill" id="toolVersion">v1.0.1</span>
     <button id="langToggle" class="ghost" title="switch language">EN</button>
     <a class="pill" href="https://github.com/YuHeng1412/minecraft-stronghold-finder" target="_blank" rel="noopener">GitHub</a>
   </div>
@@ -248,16 +248,16 @@
     </div>
 
     <div class="card">
-      <h2><span class="zh">二、种子推算（1.19.3+ 可以算出全部 128 个）</span><span class="en">2. Seed prediction (all 128 on 1.19.3+)</span></h2>
+      <h2><span class="zh">二、种子推算（1.19.3 – 26.3 可以算出全部 128 个）</span><span class="en">2. Seed prediction (all 128 on 1.19.3 - 26.3)</span></h2>
       <div class="zh">
         <p>Minecraft 从 1.9 起把最多 128 个要塞按 8 个同心环摆放：先算出一个「理想点」（某个区块的中心），再把要塞挪到 112 格内最近的合法生物群系里。本工具复现的就是这个理想点——也正是末影之眼瞄准的位置。</p>
-        <p><b>1.19.3 及更新版本：</b>生物群系搜索会从环形随机数生成器里 fork 出自己的随机源（只消耗一个 <code>nextLong</code>），所以 128 个要塞的理想点都能只凭种子算出来，误差 ±112 格。</p>
+        <p><b>1.19.3 及更新版本（含 26.1 / 26.2 / 26.3）：</b>生物群系搜索会从环形随机数生成器里 fork 出自己的随机源（只消耗一个 <code>nextLong</code>），所以 128 个要塞的理想点都能只凭种子算出来，误差 ±112 格。</p>
         <p><b>1.9 – 1.19.2 与 1.8：</b>生物群系搜索直接消耗同一个随机数流，每算一个要塞都会吃掉上千个随机数，所以第二个要塞之后的位置取决于地图地形。本工具只给出<b>第 1 个</b>要塞，不会编造其余坐标。</p>
         <p>推荐用法：先算出第 1 个要塞的理想点 → 传送/走过去 → 用末影之眼三角定位精确锁定楼梯口。</p>
       </div>
       <div class="en">
         <p>Since 1.9 Minecraft places up to 128 strongholds in eight concentric rings: it computes an "ideal point" (a chunk centre) and then nudges the stronghold to the nearest valid biome within 112 blocks. This tool reproduces that ideal point, which is exactly where an eye of ender points.</p>
-        <p><b>1.19.3 and newer:</b> the biome search forks its own random source (consuming a single <code>nextLong</code>), so all 128 ideal points follow from the seed alone, within ±112 blocks.</p>
+        <p><b>1.19.3 and newer (including 26.1 / 26.2 / 26.3):</b> the biome search forks its own random source (consuming a single <code>nextLong</code>), so all 128 ideal points follow from the seed alone, within ±112 blocks.</p>
         <p><b>1.9 - 1.19.2 and 1.8:</b> the biome search draws from the same stream - thousands of draws per stronghold - so anything after the first one depends on terrain. Only the first stronghold is reported here; the rest are not invented.</p>
         <p>Suggested workflow: predict the first stronghold, travel there, then refine with eye triangulation.</p>
       </div>

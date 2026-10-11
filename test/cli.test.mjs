@@ -55,7 +55,7 @@ test('cli: seed prediction prints a table and honours --ring/--limit', () => {
   const all = run(['seed', '0', '--limit', '3']);
   assertEqual(all.status, 0, 'exit code');
   assert(all.stdout.includes('种子 0'), 'seed echoed');
-  assert(all.stdout.includes('1.19.3 - 1.21.x'), 'version echoed');
+  assert(all.stdout.includes('1.19.3 - 26.3'), 'version echoed');
   assert(all.stdout.includes('可推算 128 / 128'), 'capability line');
   assertEqual(all.stdout.split('\n').filter((line) => /^\s+\d+\s+\d+\s+-?\d/.test(line)).length, 3, 'three rows');
 

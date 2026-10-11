@@ -10,6 +10,7 @@ import {
   MAX_STRONGHOLD_RADIUS,
   RELOCATION_RADIUS,
   RINGS,
+  VERSIONS,
   generateStrongholds,
 } from './stronghold.js';
 import {
@@ -53,7 +54,7 @@ const MESSAGES = {
     'toast.empty': '没有可复制的内容',
     'seed.textSeed': '文本种子已按 Java String.hashCode 转换为 {seed}',
     'seed.predictable': '可推算 {predictable} / {total} 个要塞，理想点误差 ±{radius} 格',
-    'seed.partial': '该版本的生物群系搜索会消耗同一个随机数流，所以只有第 1 个要塞可以精确推算，其余取决于地形。想拿到全部 128 个坐标请选 1.19.3 及更新版本，或者直接用末影之眼定位。',
+    'seed.partial': '该版本的生物群系搜索会消耗同一个随机数流，所以只有第 1 个要塞可以精确推算，其余取决于地形。想拿到全部 128 个坐标请选 1.19.3 – 26.3，或者直接用末影之眼定位。',
     'seed.ringInfo': '第 {ring} 环：{count} 个要塞，距原点 {min} - {max} 格',
     'seed.all': '全部',
     'seed.ring': '{ring} 环',
@@ -96,7 +97,7 @@ const MESSAGES = {
     'toast.empty': 'Nothing to copy',
     'seed.textSeed': 'Text seed resolved to {seed} via Java String.hashCode',
     'seed.predictable': 'Can predict {predictable} of {total} strongholds, ideal point within ±{radius} blocks',
-    'seed.partial': 'In this version the biome search draws from the same random stream, so only the first stronghold is predictable and the rest depend on terrain. Choose 1.19.3 or newer for all 128, or just use eye triangulation.',
+    'seed.partial': 'In this version the biome search draws from the same random stream, so only the first stronghold is predictable and the rest depend on terrain. Choose 1.19.3 - 26.3 for all 128, or just use eye triangulation.',
     'seed.ringInfo': 'Ring {ring}: {count} strongholds, {min} - {max} blocks from the origin',
     'seed.all': 'All',
     'seed.ring': 'Ring {ring}',
@@ -833,14 +834,10 @@ function drawOverview(result) {
 
 function renderVersionSelect() {
   els.versionSelect.textContent = '';
-  for (const [value, label] of [
-    ['modern', '1.19.3 - 1.21.x'],
-    ['classic', '1.9 - 1.19.2'],
-    ['legacy', '1.8 and older'],
-  ]) {
+  for (const version of VERSIONS) {
     const option = document.createElement('option');
-    option.value = value;
-    option.textContent = label;
+    option.value = version.id;
+    option.textContent = state.lang === 'zh' ? (version.labelZh ?? version.label) : version.label;
     els.versionSelect.appendChild(option);
   }
   els.versionSelect.value = state.version;
@@ -1031,7 +1028,7 @@ function boot() {
   showTab('eye');
   renderAll();
   calculateSeed();
-  if (els.toolVersion) els.toolVersion.textContent = 'v1.0.0';
+  if (els.toolVersion) els.toolVersion.textContent = 'v1.0.1';
   if (els.bootWarning) els.bootWarning.hidden = true;
   window.__STRONGHOLD_FINDER_READY__ = true;
 }
