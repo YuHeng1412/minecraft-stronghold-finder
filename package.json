@@ -1,0 +1,46 @@
+{
+  "name": "minecraft-stronghold-finder",
+  "version": "1.0.0",
+  "description": "Minecraft stronghold finder: eye-of-ender triangulation plus seed-based stronghold ring calculator (末地要塞定位器)",
+  "type": "module",
+  "license": "MIT",
+  "author": "YuHeng1412",
+  "homepage": "https://yuheng1412.github.io/minecraft-stronghold-finder/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YuHeng1412/minecraft-stronghold-finder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YuHeng1412/minecraft-stronghold-finder/issues"
+  },
+  "keywords": [
+    "minecraft",
+    "stronghold",
+    "stronghold-finder",
+    "eye-of-ender",
+    "triangulation",
+    "seed",
+    "末地要塞",
+    "要塞定位"
+  ],
+  "bin": {
+    "stronghold-finder": "./src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "assets",
+    "index.html",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/run.mjs",
+    "build": "node tools/build.mjs",
+    "build:check": "node tools/build.mjs --check",
+    "cli": "node src/cli.mjs",
+    "serve": "node tools/serve.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

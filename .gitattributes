@@ -1,0 +1,7 @@
+# Keep line endings identical on every platform: the checked-in single file
+# build (dist/) is compared byte for byte with a freshly generated one in CI.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary

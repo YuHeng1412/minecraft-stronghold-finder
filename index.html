@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>末地要塞定位器 · Minecraft Stronghold Finder</title>
+<meta name="description" content="Minecraft 末地要塞（要塞/末地传送门）定位工具：末影之眼三角定位 + 世界种子推算，纯前端离线可用。">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="末地要塞定位器 · Minecraft Stronghold Finder">
+<meta property="og:description" content="用末影之眼三角定位，或用世界种子推算末地要塞位置。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%231d7d4c'/%3E%3Ccircle cx='13' cy='13' r='7' fill='%2343d17a'/%3E%3Ccircle cx='11' cy='11' r='3' fill='%23d7fff0'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1><span class="eye"></span><span class="zh">末地要塞定位器</span><span class="en">Stronghold Finder</span></h1>
+    <p>
+      <span class="zh">用末影之眼三角定位，或用世界种子推算要塞位置。纯前端、可离线、无需模组。</span>
+      <span class="en">Locate a stronghold with eye of ender triangulation or straight from the world seed. Offline, no mods.</span>
+    </p>
+  </div>
+  <div class="header-actions">
+    <span class="pill" id="toolVersion">v1.0.0</span>
+    <button id="langToggle" class="ghost" title="switch language">EN</button>
+    <a class="pill" href="https://github.com/YuHeng1412/minecraft-stronghold-finder" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div id="bootWarning" class="notice" hidden style="max-width:1280px;margin:0 auto 12px;padding:14px 18px;">
+  <span class="zh">页面脚本没有加载。如果你是<b>双击 index.html</b> 打开的，浏览器会拦截 ES 模块：请改用仓库里的单文件版 <code>dist/minecraft-stronghold-finder.html</code>，或在该目录执行 <code>npx serve</code> 后访问本地地址。</span>
+  <span class="en">The app did not start. If you opened <b>index.html by double clicking</b>, the browser blocks ES modules: use the single file build <code>dist/minecraft-stronghold-finder.html</code>, or run <code>npx serve</code> in this folder and open the printed address.</span>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="eye" class="active"><span class="zh">末影之眼定位</span><span class="en">Eye triangulation</span></button>
+  <button data-tab="seed"><span class="zh">种子推算</span><span class="en">Seed prediction</span></button>
+  <button data-tab="guide"><span class="zh">使用教程</span><span class="en">Walkthrough</span></button>
+</nav>
+
+<main>
+  <!-- ================= eye triangulation ================= -->
+  <section class="panel" id="tab-eye">
+    <div class="grid-2">
+      <div class="card">
+        <h2><span class="zh">添加一次测量</span><span class="en">Add a measurement</span></h2>
+        <p class="small">
+          <span class="zh">原版就能用的方法：站在起点抛眼，跟着它走，当它悬停在你<b>正上方</b>时记下坐标。</span>
+          <span class="en">Works in vanilla: throw the eye, follow it, and record where it hovers directly above you.</span>
+        </p>
+
+        <div class="row">
+          <div>
+            <label for="throwX"><span class="zh">抛眼位置 X</span><span class="en">Throw X</span></label>
+            <input id="throwX" class="raw" type="number" inputmode="numeric" placeholder="0">
+          </div>
+          <div>
+            <label for="throwZ"><span class="zh">抛眼位置 Z</span><span class="en">Throw Z</span></label>
+            <input id="throwZ" class="raw" type="number" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="eyeX"><span class="zh">末影之眼正下方 X</span><span class="en">Under the eye X</span></label>
+            <input id="eyeX" class="raw" type="number" inputmode="numeric" placeholder="0">
+          </div>
+          <div>
+            <label for="eyeZ"><span class="zh">末影之眼正下方 Z</span><span class="en">Under the eye Z</span></label>
+            <input id="eyeZ" class="raw" type="number" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+        <div class="row buttons">
+          <button id="addPointMeasurement" class="primary"><span class="zh">添加两点测量</span><span class="en">Add two point measurement</span></button>
+        </div>
+
+        <h3><span class="zh">或者用视线角度（需要显示 yaw 的小地图/模组）</span><span class="en">Or use the eye bearing (needs a HUD showing yaw)</span></h3>
+        <div class="row">
+          <div>
+            <label for="yaw"><span class="zh">视线角度 yaw（0=南/+Z，90=西/-X）</span><span class="en">Eye yaw (0 = south/+Z, 90 = west/-X)</span></label>
+            <input id="yaw" class="raw" type="number" step="0.1" placeholder="45.0">
+          </div>
+          <div style="flex:0 0 auto">
+            <button id="addYawMeasurement"><span class="zh">添加角度测量</span><span class="en">Add bearing measurement</span></button>
+          </div>
+        </div>
+
+        <h3><span class="zh">精度设置</span><span class="en">Precision</span></h3>
+        <div class="row">
+          <div>
+            <label for="sigma"><span class="zh">记录位置误差 σ（格）</span><span class="en">Position error σ (blocks)</span></label>
+            <input id="sigma" class="raw" type="number" step="0.5" min="0.1" value="1.5">
+          </div>
+          <div>
+            <label for="yawSigma"><span class="zh">角度误差（度）</span><span class="en">Bearing error (degrees)</span></label>
+            <input id="yawSigma" class="raw" type="number" step="0.05" min="0.01" value="0.25">
+          </div>
+        </div>
+        <p class="small muted">
+          <span class="zh">σ 就是你记录坐标时的不确定度。默认 1.5 格比较稳妥；如果你能精确站在末影之眼正下方，可以调到 1.0。</span>
+          <span class="en">σ is how precisely you can read a position. 1.5 blocks is a safe default; use 1.0 if you can stand exactly under the eye.</span>
+        </p>
+      </div>
+
+      <div class="card">
+        <div id="eyeResult"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="zh">测量列表</span><span class="en">Measurements</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><span class="zh">起点</span><span class="en">From</span></th>
+              <th><span class="zh">终点 / 角度</span><span class="en">To / bearing</span></th>
+              <th class="num"><span class="zh">基线（格）</span><span class="en">Baseline</span></th>
+              <th class="num"><span class="zh">残差（格）</span><span class="en">Residual</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="measureBody"></tbody>
+        </table>
+      </div>
+      <p id="measureEmpty" class="muted small"></p>
+      <div class="row buttons">
+        <button id="loadSample"><span class="zh">载入示例</span><span class="en">Load example</span></button>
+        <button id="exportData"><span class="zh">导出 JSON</span><span class="en">Export JSON</span></button>
+        <button id="importData"><span class="zh">导入 JSON</span><span class="en">Import JSON</span></button>
+        <button id="shareLink"><span class="zh">复制分享链接</span><span class="en">Copy share link</span></button>
+        <button id="clearMeasurements" class="danger"><span class="zh">清空</span><span class="en">Clear</span></button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="zh">地图</span><span class="en">Map</span></h2>
+      <div class="grid-map">
+        <canvas id="mapCanvas" width="900" height="560"></canvas>
+        <div>
+          <canvas id="overviewCanvas" width="280" height="280"></canvas>
+          <div class="map-legend" id="mapLegend">
+            <span><i style="background:#5aa9e6"></i><span class="zh">抛眼位置与视线</span><span class="en">throw point and line of sight</span></span>
+            <span><i style="background:#43d17a"></i><span class="zh">估计位置 / 95% 范围</span><span class="en">estimate and 95% radius</span></span>
+            <span><i style="background:#a273f2"></i><span class="zh">原点与要塞环带</span><span class="en">origin and stronghold rings</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= seed ================= -->
+  <section class="panel" id="tab-seed" hidden>
+    <div class="card">
+      <h2><span class="zh">由世界种子推算要塞</span><span class="en">Predict strongholds from the seed</span></h2>
+      <div class="row">
+        <div style="flex:2 1 240px">
+          <label for="seedInput"><span class="zh">世界种子（数字或文本）</span><span class="en">World seed (number or text)</span></label>
+          <input id="seedInput" class="raw" type="text" placeholder="0">
+        </div>
+        <div>
+          <label for="versionSelect"><span class="zh">游戏版本</span><span class="en">Game version</span></label>
+          <select id="versionSelect"></select>
+        </div>
+        <div>
+          <label for="seedRingSelect"><span class="zh">显示范围</span><span class="en">Ring filter</span></label>
+          <select id="seedRingSelect"></select>
+        </div>
+        <div style="flex:0 0 auto">
+          <button id="calcSeed" class="primary"><span class="zh">计算</span><span class="en">Calculate</span></button>
+        </div>
+        <div style="flex:0 0 auto">
+          <button id="copySeedCsv"><span class="zh">复制 CSV</span><span class="en">Copy CSV</span></button>
+        </div>
+      </div>
+      <div id="seedSummary"></div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><span class="zh">环</span><span class="en">Ring</span></th>
+              <th class="num"><span class="zh">理想点 X, Z</span><span class="en">Ideal X, Z</span></th>
+              <th class="num"><span class="zh">楼梯口估计 X, Z</span><span class="en">Staircase X, Z</span></th>
+              <th class="num"><span class="zh">距原点</span><span class="en">From origin</span></th>
+              <th class="num"><span class="zh">方位角</span><span class="en">Bearing</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="seedBody"></tbody>
+        </table>
+      </div>
+      <p class="small muted">
+        <span class="zh">理想点是末影之眼瞄准的生成点；游戏会把要塞挪到 112 格内最近的合法生物群系，所以实际楼梯口可能偏离，越接近时请再抛一次末影之眼修正。</span>
+        <span class="en">The ideal point is what an eye of ender aims at. The game relocates the stronghold to a valid biome within 112 blocks, so throw an eye again once you are close.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= guide ================= -->
+  <section class="panel" id="tab-guide" hidden>
+    <div class="card">
+      <h2><span class="zh">一、末影之眼定位（推荐，任何版本都能用）</span><span class="en">1. Eye of ender triangulation (works on every version)</span></h2>
+      <div class="zh">
+        <ol>
+          <li>准备 2 个以上末影之眼（3 个以上更稳），不需要任何模组。</li>
+          <li>站在 A 点，记下 F3 里的 <code>X / Z</code>，抛出末影之眼。</li>
+          <li>跟着末影之眼走，当它<b>悬停在你正上方</b>时，记下新的 <code>X / Z</code>。</li>
+          <li>把这两组坐标填进「抛眼位置」和「末影之眼正下方」，点「添加两点测量」。</li>
+          <li>沿着<b>大致垂直于视线</b>的方向走 300 ~ 1000 格到 B 点，重复一次。</li>
+          <li>两条线一出现交点，结果就会显示在右上方。想更准就再测第三、第四次。</li>
+        </ol>
+        <p>如果你的小地图/HUD 能显示朝向角 yaw，也可以只在一个点完成测量：把准星对准末影之眼，读出 yaw（0 = 南/+Z，90 = 西/-X），用「角度测量」录入。</p>
+      </div>
+      <div class="en">
+        <ol>
+          <li>Bring two or more eyes of ender. No mods required.</li>
+          <li>Stand at point A, note <code>X / Z</code> from F3, throw an eye.</li>
+          <li>Follow the eye and, when it hovers <b>directly above you</b>, note the new <code>X / Z</code>.</li>
+          <li>Enter both into "Throw" and "Under the eye" and press the add button.</li>
+          <li>Walk 300-1000 blocks <b>roughly perpendicular to the line of sight</b> and repeat.</li>
+          <li>The crossing appears immediately; a third or fourth throw makes it tighter.</li>
+        </ol>
+        <p>If your HUD shows the yaw, aim at the eye and read it (0 = south/+Z, 90 = west/-X) and add a bearing measurement instead.</p>
+      </div>
+
+      <h3><span class="zh">读结果</span><span class="en">Reading the result</span></h3>
+      <ul class="notes">
+        <li><span class="zh">绿色十字 = 估计位置；虚线圆 = 95% 置信半径。</span><span class="en">Green cross = estimate, dashed circle = 95% confidence radius.</span></li>
+        <li><span class="zh">「所在环」可以判断结果是否合理：要塞只会出现在 8 个环带里（1408-2688、4480-5760 … 22912-24192）。</span><span class="en">The ring tells you whether the result is plausible: strongholds only exist in the eight bands from 1408-2688 up to 22912-24192.</span></li>
+        <li><span class="zh">警告「有视线的反方向才指向交点」几乎总是意味着两次抛眼瞄到了不同的要塞——回去重测。</span><span class="en">The "points away" warning almost always means the two throws aimed at different strongholds; measure again.</span></li>
+        <li><span class="zh">到点后在附近找苔石砖/石砖楼梯，一路向下就是末地传送门房间（12 个框架，需要 12 个末影之眼，部分可能已经填好）。</span><span class="en">Nearby, look for mossy stone brick stairs going down: they lead to the end portal room with 12 frames (some may already be filled).</span></li>
+      </ul>
+
+      <h3><span class="zh">提高精度的技巧</span><span class="en">Getting a tighter result</span></h3>
+      <ul class="notes">
+        <li><span class="zh">两次抛眼的位置离得越远越好，视线夹角小会把误差放大几十倍。</span><span class="en">Throw from far apart: nearly parallel rays magnify every error.</span></li>
+        <li><span class="zh">跟得远一点再记「正下方」，基线越长角度越准（工具会自动按基线长度加权）。</span><span class="en">Walk further before noting "directly below": a longer baseline sharpens the bearing, and the fit weights it accordingly.</span></li>
+        <li><span class="zh">三条以上测量可以互相纠错，残差那一列会告诉你哪条不准。</span><span class="en">Three or more lines cross-check each other; the residual column shows which one is off.</span></li>
+        <li><span class="zh">只在下界/末地抛眼没有用——末影之眼只会指向主世界的要塞。</span><span class="en">Eyes only point at overworld strongholds, so do not measure in the nether or the end.</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="zh">二、种子推算（1.19.3+ 可以算出全部 128 个）</span><span class="en">2. Seed prediction (all 128 on 1.19.3+)</span></h2>
+      <div class="zh">
+        <p>Minecraft 从 1.9 起把最多 128 个要塞按 8 个同心环摆放：先算出一个「理想点」（某个区块的中心），再把要塞挪到 112 格内最近的合法生物群系里。本工具复现的就是这个理想点——也正是末影之眼瞄准的位置。</p>
+        <p><b>1.19.3 及更新版本：</b>生物群系搜索会从环形随机数生成器里 fork 出自己的随机源（只消耗一个 <code>nextLong</code>），所以 128 个要塞的理想点都能只凭种子算出来，误差 ±112 格。</p>
+        <p><b>1.9 – 1.19.2 与 1.8：</b>生物群系搜索直接消耗同一个随机数流，每算一个要塞都会吃掉上千个随机数，所以第二个要塞之后的位置取决于地图地形。本工具只给出<b>第 1 个</b>要塞，不会编造其余坐标。</p>
+        <p>推荐用法：先算出第 1 个要塞的理想点 → 传送/走过去 → 用末影之眼三角定位精确锁定楼梯口。</p>
+      </div>
+      <div class="en">
+        <p>Since 1.9 Minecraft places up to 128 strongholds in eight concentric rings: it computes an "ideal point" (a chunk centre) and then nudges the stronghold to the nearest valid biome within 112 blocks. This tool reproduces that ideal point, which is exactly where an eye of ender points.</p>
+        <p><b>1.19.3 and newer:</b> the biome search forks its own random source (consuming a single <code>nextLong</code>), so all 128 ideal points follow from the seed alone, within ±112 blocks.</p>
+        <p><b>1.9 - 1.19.2 and 1.8:</b> the biome search draws from the same stream - thousands of draws per stronghold - so anything after the first one depends on terrain. Only the first stronghold is reported here; the rest are not invented.</p>
+        <p>Suggested workflow: predict the first stronghold, travel there, then refine with eye triangulation.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="zh">三、常见问题</span><span class="en">3. FAQ</span></h2>
+      <ul class="notes">
+        <li><span class="zh"><b>结果离我很远，正常吗？</b>正常。要塞最近也在 1408 格外，最远 24192 格。</span><span class="en"><b>The result is far away - normal?</b> Yes: strongholds sit between 1408 and 24192 blocks from the origin.</span></li>
+        <li><span class="zh"><b>末影之眼碎了？</b>碎眼只说明概率，不影响方向；多带几个。测量可以在同一次飞行中完成。</span><span class="en"><b>The eye broke?</b> Breaking is random and does not change the direction; bring spares.</span></li>
+        <li><span class="zh"><b>数据会被上传吗？</b>不会。全部计算在浏览器里完成，数据只存在本地 localStorage。</span><span class="en"><b>Is my data uploaded?</b> No. Everything runs in the browser and is stored in localStorage only.</span></li>
+        <li><span class="zh"><b>坐标是不是绝对值？</b>是，主世界方块坐标。下界坐标按 1:8 换算即可（结果面板有按钮）。</span><span class="en"><b>Are coordinates absolute?</b> Yes, overworld block coordinates. Nether travel is 1:8 (there is a button for it).</span></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>
+    <span class="zh">非官方工具，与 Mojang / Microsoft 无关。MIT 许可。</span>
+    <span class="en">Unofficial tool, not affiliated with Mojang or Microsoft. MIT licensed.</span>
+  </p>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // If the module script never runs (typically because the file was opened
+  // directly from disk, where browsers refuse to load ES modules), say so.
+  window.setTimeout(function () {
+    if (!window.__STRONGHOLD_FINDER_READY__) {
+      var warning = document.getElementById('bootWarning');
+      if (warning) warning.hidden = false;
+    }
+  }, 1500);
+</script>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
